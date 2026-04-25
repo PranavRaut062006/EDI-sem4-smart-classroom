@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartClassroom — Live Dashboard</title>
+    <meta name="description"
+        content="Real-time smart classroom monitoring: face detection, attendance, and sensor dashboard." />
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+
+    <!-- ─── Topbar ─────────────────────────────── -->
+    <header class="topbar">
+        <div class="topbar-brand">
+            <div class="logo-icon">🎓</div>
+            <span>SmartClassroom</span>
+        </div>
+        <nav class="topbar-nav">
+            <a href="/" class="active"><span>📡 </span>Dashboard</a>
+            <a href="/register"><span>➕ </span>Register</a>
+        </nav>
+        <div class="topbar-status">
+            <div class="status-dot" id="status-dot"></div>
+            <span id="status-label">Connecting…</span>
+        </div>
+    </header>
+
+    <!-- ─── Main Layout ────────────────────────── -->
+    <main class="layout">
+
+        <!-- CAMERA SECTION -->
+        <section class="card camera-section" style="padding:0;overflow:hidden">
+            <div class="camera-wrap">
+                <!-- Live frame -->
+                <img id="camera-feed" alt="Live Camera Feed" />
+
+                <!-- HUD overlay -->
+                <div class="camera-overlay">
+                    <div class="hud-corner tl"></div>
+                    <div class="hud-corner tr"></div>
+                    <div class="hud-corner bl"></div>
+                    <div class="hud-corner br"></div>
+                </div>
+
+                <!-- REC badge -->
+                <div class="camera-badge">
+                    <div class="rec-dot"></div>
+                    LIVE DETECTION
+                </div>
+
+                <!-- Stats pills -->
+                <div class="camera-stats">
+                    <div class="cam-stat-pill">
+                        <span class="icon">👤</span>
+                        Faces: <strong id="faces-count">—</strong>
+                    </div>
+                    <div class="cam-stat-pill">
+                        <span class="icon">🔵</span>
+                        Motion: <strong id="motion-val">—</strong>
+                    </div>
+                </div>
+
+                <!-- Loading overlay -->
+                <div class="no-feed-overlay" id="no-feed-overlay">
+                    <div class="spinner"></div>
+                    <span>Waiting for camera stream…</span>
+                </div>
+            </div>
+
+            <!-- Engagement ring below camera -->
+            <div
+                style="padding:16px 20px 12px;display:flex;align-items:center;gap:20px;border-top:1px solid var(--border)">
+                <div class="engagement-wrap">
+                    <svg class="ring-svg" width="108" height="108" viewBox="0 0 108 108">
+                        <defs>
+                            <linearGradient id="eng-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#3b82f6" />
+                                <stop offset="100%" stop-color="#06b6d4" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="ring-bg" cx="54" cy="54" r="44" />
+                        <circle class="ring-fill" cx="54" cy="54" r="44" id="ring-fill" />
+                    </svg>
+                    <div style="position:absolute;text-align:center">
+                        <!-- ring-label positioned via JS, but we use absolute overlay trick via flex -->
+                    </div>
+                </div>
+                <!-- Stack label over ring using negative margin -->
+                <div
+                    style="position:relative;width:108px;height:108px;margin-left:-108px;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
+                    <div class="ring-label" id="ring-label">—%</div>
+                    <div class="ring-sub">Engagement</div>
+                </div>
+
+                <div style="flex:1">
+                    <div style="font-size:.8rem;color:var(--text-3);margin-bottom:4px">Average class engagement score
+                    </div>
+                    <div style="font-size:.75rem;color:var(--text-3)">Based on YOLO person + phone detection. <strong
+                            style="color:var(--accent)">100%</strong> = no distractions detected.</div>
+                    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+                        <div style="display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--green)">
+                            <span>●</span>Focused
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--red)">
+                            <span>●</span>Phone Detected
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT COLUMN: Sensors + Timer -->
+        <aside style="display:flex;flex-direction:column;gap:16px">
+
+            <!-- Sensor readings -->
+            <div class="card sensors-section">
+                <div class="card-title"><span>⚡</span> Environment Sensors</div>
+                <div class="sensor-grid">
+
+                    <div class="sensor-item">
+                        <div class="sensor-label">🌡 Temperature</div>
+                        <div class="sensor-value" id="temp-val">—<span class="sensor-unit">°C</span></div>
+                        <div class="sensor-bar">
+                            <div class="sensor-bar-fill" id="temp-bar" style="width:0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="sensor-item">
+                        <div class="sensor-label">💧 Humidity</div>
+                        <div class="sensor-value" id="hum-val">—<span class="sensor-unit">%</span></div>
+                        <div class="sensor-bar">
+                            <div class="sensor-bar-fill" id="hum-bar" style="width:0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="sensor-item">
+                        <div class="sensor-label">🌫 Air Quality</div>
+                        <div class="sensor-value" id="aqi-val">—<span class="sensor-unit">AQI</span></div>
+                        <div class="sensor-bar">
+                            <div class="sensor-bar-fill" id="aqi-bar" style="width:0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="sensor-item">
+                        <div class="sensor-label">💡 Light Level</div>
+                        <div class="sensor-value" id="light-val">—<span class="sensor-unit">lx</span></div>
+                        <div class="sensor-bar">
+                            <div class="sensor-bar-fill" id="light-bar" style="width:0%"></div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="env-status" id="env-status">● Waiting for data…</div>
+            </div>
+
+            <!-- Attendance Timer -->
+            <div class="card">
+                <div class="card-title"><span>⏱</span> Attendance Timer</div>
+                <div class="timer-display" id="timer-display">--:--</div>
+                <div class="timer-progress">
+                    <div class="timer-progress-bar" id="timer-bar" style="width:0%"></div>
+                </div>
+                <div style="font-size:.75rem;color:var(--text-3);margin-bottom:10px">
+                    Start the timer to open the attendance window. Students seen during this window are marked <strong
+                        style="color:var(--green)">Present</strong>.
+                </div>
+                <div class="timer-controls">
+                    <input type="number" class="timer-input" id="timer-minutes" value="5" min="1" max="90"
+                        title="Duration in minutes" />
+                    <span style="font-size:.75rem;color:var(--text-3)">min</span>
+                    <button class="btn btn-primary" id="btn-start-timer">▶ Start</button>
+                    <button class="btn btn-danger" id="btn-stop-timer">⏹ Stop</button>
+                </div>
+            </div>
+
+            <!-- Quick links -->
+            <div class="card" style="padding:14px 18px">
+                <div class="card-title"><span>🔗</span> Quick Actions</div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                    <a href="/register" class="btn btn-ghost" style="text-decoration:none;justify-content:center">
+                        ➕ Register New Student
+                    </a>
+                    <button class="btn btn-ghost" onclick="location.reload()">
+                        🔄 Reload Dashboard
+                    </button>
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- ATTENDANCE TABLE — full width -->
+        <section class="card attendance-section">
+            <div class="attendance-header">
+                <div class="card-title" style="margin-bottom:0"><span>📋</span> Attendance Register</div>
+                <div class="pill-stats">
+                    <span class="pill pill-present" id="pill-present">Present: 0</span>
+                    <span class="pill pill-absent" id="pill-absent">Absent: 0</span>
+                    <span class="pill pill-late" id="pill-late">Late: 0</span>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table id="attendance-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Status</th>
+                            <th>Check-In</th>
+                            <th>Distraction</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendance-tbody">
+                        <tr class="empty-row">
+                            <td colspan="4">Waiting for live data… <a href="/register"
+                                    style="color:var(--accent)">Register a student →</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+
+</html>
