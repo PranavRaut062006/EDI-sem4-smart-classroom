@@ -1,0 +1,9 @@
+# Smart Classroom — Server Dependencies
+# Works with Python 3.14+
+fastapi
+uvicorn[standard]
+websockets
+opencv-contrib-python
+numpy
+ultralytics
+pillow

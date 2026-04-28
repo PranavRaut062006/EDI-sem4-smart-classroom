@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+
+# Database
+*.db
+
+# Models
+*.pkl
+*.pt
+
+# Env
+.env
+
+# Node
+node_modules/
+
+# Build
+dist/
+build/
